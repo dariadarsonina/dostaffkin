@@ -3,6 +3,7 @@ import { Header } from '../../header/header';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DELIVERY_SIZES, DELIVERY_SPEEDS } from './order.config';
 import { UpperCasePipe } from '@angular/common';
+import { DeliveryApi } from '../../services/delivery-api';
 
 declare var ymaps: any;
 
@@ -25,7 +26,7 @@ export class Order implements OnInit {  // Добавлен implements OnInit
     public orderId = signal<any>(null);  // Исправлено: убрано : any
     public calculationResult = signal<any>(null);  // Исправлено: убрано : any
 
-    constructor(private formBuilder: FormBuilder) {
+    constructor(private formBuilder: FormBuilder, private deliveryApi: DeliveryApi) {
         this.routeForm = this.formBuilder.group({
             from: ['', Validators.required],
             to: ['', Validators.required],
@@ -147,8 +148,14 @@ export class Order implements OnInit {  // Добавлен implements OnInit
             calculation: calculation,
             createdAt: new Date().toISOString()
         };
+        this.deliveryApi.createDelivery(payload).subscribe((response) => {
+            if ('error' in response) {
+                alert(response.error);
+                return;
+            }
 
-        console.log(payload);
+            this.orderId.set(response.id);
+        });
         this.orderId.set(1);
     }
 }
